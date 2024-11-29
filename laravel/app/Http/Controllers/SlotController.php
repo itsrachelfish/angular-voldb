@@ -182,8 +182,12 @@ class SlotController extends Controller
     }
 
     public function adminAssign(Request $request, Slot $slot)
-    {
-        $user = User::findorFail($request->get('user'));
+    {   
+        $user = User::find($request->get('user'));
+        if (empty($user)) {
+            $request->session()->flash('error', 'You didn\'t select a user to add.');
+            return redirect()->back();
+        }
 
         if(is_null($slot->user))
         {

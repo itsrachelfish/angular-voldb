@@ -15,12 +15,17 @@ if(!empty($slot->user))
     {
         $self = true;
         $url = "/slot/{$slot->id}/release";
+        //if the admin is trying to release themselves from a slot
+        if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('department-lead'))
+        {
+            $url = "/slot/{$slot->id}/adminRelease";
+        }
     }
     else
     {
         $other = true;
     }
-
+    //if the admin is trying to release someone else from their slot
     if(Auth::check() && (Auth::user()->hasRole('admin') || Auth::user()->hasRole('department-lead')))
     {
         $adminUrl = "/slot/{$slot->id}/adminRelease";
