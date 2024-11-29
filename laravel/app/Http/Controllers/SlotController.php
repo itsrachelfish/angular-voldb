@@ -58,9 +58,33 @@ class SlotController extends Controller
         return $allowed;
     }
 
-    // Page to view slots
-    public function view(Request $request, Slot $slot)
+    private function canAlterIfDeleted($slot)
     {
+        if($slot->trashed()) {
+            $is_assigned = false;
+            if(isset($slot->user->id)) {
+                $is_assigned = $slot->user->id === Auth::user()->id;
+            }
+            $is_lead = Auth::user()->hasRole('department-lead');
+            $is_admin = Auth::user()->hasRole('admin');
+
+            if(!$is_assigned && !$is_lead && !$is_admin) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Page to view slots
+    public function view(Request $request, $id)
+    {
+        $slot = Slot::withTrashed()->find($id);
+
+        if(!$this->canAlterIfDeleted($slot)) {
+            return redirect("/event/{$slot->event->id}");
+        }
+
         if(is_null(Auth::user()->data) or empty(Auth::user()->data->full_name))
         {
             $request->session()->flash('error', "You must enter your name before you can sign up for shifts.");
@@ -130,8 +154,19 @@ class SlotController extends Controller
     }
 
     // Remove yourself from a slot
-    public function release(Request $request, Slot $slot)
+    public function release(Request $request, $id)
     {
+        $slot = Slot::withTrashed()->find($id);
+
+        if(!$this->canAlterIfDeleted($slot)) {
+            return redirect("/event/{$slot->event->id}");
+        }
+
+        if($slot->trashed()) {
+            $slot->forceDelete();
+            return redirect("/event/{$slot->event->id}");
+        }
+
         if($this->eventHasPassed($slot))
         {
             $request->session()->flash('error', 'This event has already passed, you are no longer able to make changes to your shifts.');
@@ -163,8 +198,19 @@ class SlotController extends Controller
         return;
     }
 
-    public function adminRelease(Request $request, Slot $slot)
+    public function adminRelease(Request $request, $id)
     {
+        $slot = Slot::withTrashed()->find($id);
+
+        if(!$this->canAlterIfDeleted($slot)) {
+            return redirect("/event/{$slot->event->id}");
+        }
+
+        if($slot->trashed()) {
+            $slot->forceDelete();
+            return redirect("/event/{$slot->event->id}");
+        }
+
         if(!is_null($slot->user))
         {
             $username = Helpers::displayName($slot->user);

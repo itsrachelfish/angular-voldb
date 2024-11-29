@@ -83,15 +83,15 @@ Route::post('/schedule/{schedule}/edit', 'ScheduleController@edit');
 Route::get('/schedule/{schedule}/delete', 'ScheduleController@deleteForm');
 Route::post('/schedule/{schedule}/delete', 'ScheduleController@delete');
 
-Route::get('/slot/{slot}/view', 'SlotController@view');
+Route::get('/slot/{id}/view', 'SlotController@view');
 Route::post('/slot/{slot}/take', 'SlotController@take');
-Route::post('/slot/{slot}/release', 'SlotController@release');
+Route::post('/slot/{id}/release', 'SlotController@release');
 
 // Routes for Admins / Deparment Leads
 Route::group(['middleware' => ['auth', 'lead']], function()
 {
     Route::post('/slot/{slot}/edit','SlotController@edit');
-    Route::post('/slot/{slot}/adminRelease', 'SlotController@adminRelease');
+    Route::post('/slot/{id}/adminRelease', 'SlotController@adminRelease');
     Route::post('/slot/{slot}/adminAssign', 'SlotController@adminAssign');
 });
 

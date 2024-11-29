@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Slot extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = ['schedule_id', 'start_date', 'start_time', 'end_time', 'row', 'status'];
 
     // Slots belong to the schedule
@@ -77,7 +80,8 @@ class Slot extends Model
         else
         {
             // Delete all existing slots for this shift
-            Slot::where('schedule_id', $schedule->id)->whereNull('user_id')->delete();
+            Slot::where('schedule_id', $schedule->id)->whereNull('user_id')->forceDelete();
+            Slot::where('schedule_id', $schedule->id)->delete();
             $row = 1;
         }
 
@@ -174,6 +178,7 @@ class Slot extends Model
         else
         {
             // Delete all slots where the row is greater than the number of volunteers requested
+            Slot::where('schedule_id', $schedule->id)->where('row', '>', $schedule->volunteers)->whereNull('user_id')->forceDelete();
             Slot::where('schedule_id', $schedule->id)->where('row', '>', $schedule->volunteers)->delete();
         }
     }

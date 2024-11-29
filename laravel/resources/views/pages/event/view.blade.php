@@ -255,8 +255,23 @@
                                                     </div>
 
                                                     <div class="slots col-sm-10">
-                                                        @foreach($schedule->slots->where('start_date', $day->date->format('Y-m-d')) as $slot)
-                                                            @include('partials/event/slot')
+                                                        @foreach($schedule->slots()->withTrashed()->where('start_date', $day->date->format('Y-m-d'))->get() as $slot)
+                                                            <?php
+                                                                $can_view = true;
+                                                                if($slot->trashed()) {
+                                                                    $is_assigned = false;
+                                                                    if(isset($slot->user->id)) {
+                                                                        $is_assigned = $slot->user->id === Auth::user()->id;
+                                                                    }
+                                                                    $is_lead = Auth::user()->hasRole('department-lead');
+                                                                    $is_admin = Auth::user()->hasRole('admin');
+
+                                                                    $can_view = ($is_assigned || $is_lead || $is_admin);
+                                                                }
+                                                            ?>
+                                                            @if($can_view)
+                                                                @include('partials/event/slot')
+                                                            @endif
                                                         @endforeach
                                                     </div>
                                                 </li>
